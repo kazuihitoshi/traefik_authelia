@@ -1,0 +1,6 @@
+authelia/configuration.yml
+authelia/config.auto.yml
+/.env
+authelia/.generated_secrets
+authelia/db.sqlite3
+authelia/users_database.yml

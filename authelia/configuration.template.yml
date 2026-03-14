@@ -1,0 +1,8 @@
+notifier:
+  smtp:
+    address: 'submission://smtp.gmail.com:587'
+    timeout: 5s
+    username: "xxxxxxxxxxxxxxxxxxxxx@gmail.com"  # google mail address
+    password: "xxxxxxxxxxxxxxxxxxxxxxx"  # 発行した16桁のアプリパスワード（スペースは詰めてもOK)
+    sender: ""
+    identifier: "localhost"

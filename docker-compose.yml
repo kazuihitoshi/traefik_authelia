@@ -1,0 +1,81 @@
+services:
+  traefik:
+    #image: traefik:3.0
+    image: traefik:v2.11
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - traefik-public
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # ENTRY POINT
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      # HTTP -> HTTPS AUTO REDIRECT
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # Let's Encrypt SETTING
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=web,websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=authelia-auth@docker"
+      - "traefik.http.middlewares.authelia-auth.forwardauth.address=http://authelia:9091/api/verify?rd=https://${AUTH_DOMAIN}/"
+      - "traefik.http.middlewares.authelia-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.authelia-auth.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
+
+  authelia:
+    image: authelia/authelia:latest
+    restart: always
+    networks:
+      - traefik-public
+    volumes:
+      - ./authelia:/config
+    environment:
+      - TZ=${TIMEZONE}
+      - DOMAIN=${DOMAIN}
+      - AUTH_DOMAIN=${AUTH_DOMAIN}
+      - AUTHELIA_ISSUER=${AUTHELIA_ISSUER}
+      # configuration.yml session.cookies.domain setting
+      #- AUTHELIA_SESSION_COOKIES_DOMAIN=${DOMAIN}
+      # configuration.yml session.cookies.authelia_url setting
+      #- AUTHELIA_SESSION_COOKIES_AUTHELIA_URL=https://${AUTH_DOMAIN}
+    entrypoint: |
+      sh -c "/config/config.sh && exec authelia --config /config/config.auto.yml --config /config/configuration.yml "
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authelia.rule=Host(`${AUTH_DOMAIN}`)"
+      - "traefik.http.routers.authelia.entrypoints=websecure"
+      - "traefik.http.routers.authelia.tls.certresolver=myresolver"
+      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
+  frontend:
+    image: nginx:latest
+    restart: always
+    networks:
+      - traefik-public
+    environment:
+      - TZ=${TIMEZONE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+networks:
+  traefik-public:
+    external: false
