@@ -10,6 +10,17 @@ autheliaは二要素認証もサポートされていますので、Dockerコン
 
 .env に各種事項を設定してください
 
+.envは、env.templateをコピーして作成してください。
+
+```
+AUTHELIA_ISSUER=Authelia
+ACME_EMAIL=xxxxx@xxxx.com
+TIMEZONE=Asia/Tokyo
+DOMAIN=xxxxx.com
+AUTH_DOMAIN=auth.$DOMAIN
+DASHBOARD_DOMAIN=dashboard.$DOMAIN
+```
+
 ## autheliaユーザ登録方法
 
 autheliaへのユーザ登録は、以下ファイルに対してユーザ情報を追加してください。
