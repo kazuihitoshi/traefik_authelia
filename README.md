@@ -1,10 +1,12 @@
-# Docker 認証コンテナ
+# Traefik + Authelia 2FA Docker Stack
 
-## 内容
+Traefikをリバースプロキシとして使い、任意のDockerコンテナに対してホスト名単位の強力な認証(二要素認証対応)を追加するためのテンプレートです。
 
-traefikとautheliaにてホスト名単位の認証付きコンテナを構築できるものです。
-
-autheliaは二要素認証もサポートされていますので、Dockerコンテナ単位に認証させたい方には役に立つものと考えます。
+## 🌟 特徴
+* **簡単セットアップ**: 秘密鍵（JWT_SECRET等）を初回起動時に自動生成
+* **二要素認証 (2FA)**: AutheliaによるTOTP認証を標準サポート
+* **SSL対応**: TraefikによるLet's Encrypt自動更新
+* **柔軟な認証**: `users_database.yml` によるファイルベースのユーザー管理
 
 ## セットアップ方法
 
