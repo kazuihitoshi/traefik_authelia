@@ -1,7 +1,6 @@
 services:
   traefik:
-    #image: traefik:3.0
-    image: traefik:v2.11
+    image: traefik:3.6
     restart: always
     ports:
       - "80:80"
@@ -52,10 +51,6 @@ services:
       - DOMAIN=${DOMAIN}
       - AUTH_DOMAIN=${AUTH_DOMAIN}
       - AUTHELIA_ISSUER=${AUTHELIA_ISSUER}
-      # configuration.yml session.cookies.domain setting
-      #- AUTHELIA_SESSION_COOKIES_DOMAIN=${DOMAIN}
-      # configuration.yml session.cookies.authelia_url setting
-      #- AUTHELIA_SESSION_COOKIES_AUTHELIA_URL=https://${AUTH_DOMAIN}
     entrypoint: |
       sh -c "/config/config.sh && exec authelia --config /config/config.auto.yml --config /config/configuration.yml "
     labels:

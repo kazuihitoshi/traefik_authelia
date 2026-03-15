@@ -2,6 +2,7 @@
 set -e
 SECRET_FILE=/config/.generated_secrets
 USERS_FILE=/config/users_database.yml
+CONFIG_FILE=/config/configuration.yml
 if [ ! -f "${SECRET_FILE}" ]; then
   echo "Generating new secrets..."
   JWT_SECRET=$(authelia crypto rand --length 128 --charset alphanumeric|awk '{print $NF}')
@@ -14,6 +15,9 @@ fi
 . "${SECRET_FILE}"
 if [ ! -f "${USERS_FILE}" ];then
   cp /config/users_database.template.yml "${USERS_FILE}"
+fi
+if [ ! -f "${CONFIG_FILE}" ];then
+  cp /config/configuration.template.yml "${CONFIG_FILE}"
 fi
 cat <<EOF > /config/config.auto.yml
 totp:

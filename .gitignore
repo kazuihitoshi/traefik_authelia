@@ -4,3 +4,5 @@ authelia/config.auto.yml
 authelia/.generated_secrets
 authelia/db.sqlite3
 authelia/users_database.yml
+letsencrypt/
+*.swp
