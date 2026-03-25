@@ -1,0 +1,37 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLAR_TUNNEL_TOKEN}
+    command: tunnel --protocol http2 run
+    networks:
+      - traefik-public
+  traefik:
+    ports:
+      - "80:80"
+    command:
+      #- "--log.level=DEBUG"
+      #- "--accesslog=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # Tunnel access entry point
+      - "--entrypoints.web.address=:80"
+      # Trust forwarded headers from reverse proxies (e.g., Cloudflare Tunnel)
+      - "--entrypoints.web.forwardedHeaders.insecure=true"
+      - "--entrypoints.websecure.forwardedHeaders.insecure=true"
+    labels:
+      - "traefik.http.routers.traefik-dashboard.entrypoints=web"
+      - "traefik.http.routers.traefik-dashboard.tls=false"
+  authelia:
+    labels:
+      - "traefik.http.routers.authelia.entrypoints=web"
+      - "traefik.http.routers.authelia.tls=false"
+  www:
+    labels:
+      - "traefik.http.routers.www.entrypoints=web"
+      - "traefik.http.routers.www.tls=false"
+networks:
+  traefik-public:
+    external: true

@@ -59,7 +59,7 @@ services:
       - "traefik.http.routers.authelia.entrypoints=websecure"
       - "traefik.http.routers.authelia.tls.certresolver=myresolver"
       - "traefik.http.services.authelia.loadbalancer.server.port=9091"
-  frontend:
+  www:
     image: nginx:latest
     restart: always
     networks:
@@ -68,9 +68,9 @@ services:
       - TZ=${TIMEZONE}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.routers.www.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.www.entrypoints=websecure"
+      - "traefik.http.routers.www.tls.certresolver=myresolver"
 networks:
   traefik-public:
     external: false
