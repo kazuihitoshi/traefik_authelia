@@ -7,6 +7,8 @@ services:
     command: tunnel --protocol http2 run
     networks:
       - traefik-public
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   traefik:
     ports:
       - "80:80"

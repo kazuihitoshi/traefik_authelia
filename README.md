@@ -91,6 +91,33 @@ CLOUDFLAR_TUNNEL_TOKEN=eyJhIjoiNzA1ZmNmMTJjODMyMmExNmY3YWU2MGY4MzRlYWIyZDAiLCeyx
 docker compose up -d
 ```
 
+- ssh接続を追加する方法
+  - Zero Trust -> Networks -> Connectors -> 以前作成したtunnelを選択 -> Published application routers タブをクリック
+
+  - **Subdomain:** `ssh` **Domain:** `ドメインを選択` **Path:** `初期値のまま` **Sevice Type:** `SSH` **URL:** `host.docker.internal:22` を入力して Save
+
+  - Published application routesの表示順について、ssh.ドメイン名の行を *.ドメイン名より上の行に移動してください。これをやらないと、接続エラーが出ます。
+
+  - Zero Trust -> Access controls -> Applications -> Add an application -> Self-hosted -> **Application name** `SSH-open` **Session Duration** `24 hours` Add Public hostname **Input method:** `Default` **Subdomain:** `ssh` **Domain:** `ドメインを選択` **Path:** `初期値のまま` Access policies create new policy をクリック
+
+  - policyの設定がブラウザの新しいタブで表示される。 **Policy name:** `Allow-me` **Action:** Allow **Session duration:** `15 miniutes` **Add rules>Selector:** `Emails` `認証コードが送られてくるメールアドレスを記入` Save
+
+  - 以前のタブに移動して、**select existing policies** `Allow-me` Save Application
+
+- sshクライアント側の設定
+  sshクライアント側に、cloudflaredのインストールが必要です。(トンネル通信用) 
+
+  以下より、任意のモジュールをダウンロードしてインストールしてください。
+  https://github.com/cloudflare/cloudflared/releases
+
+  .ssh\config
+  ```
+  Host ssh.ドメイン名
+    HostName ssh.ドメイン名
+    IdentityFile "秘密鍵"
+    User ユーザ名
+    ProxyCommand "C:\Program Files (x86)\cloudflared\cloudflared.exe" access ssh --hostname %h
+  ```
 
 ## autheliaユーザ登録方法
 
@@ -132,4 +159,23 @@ https://www.authelia.com/configuration/second-factor/duo/
   ```bash
   docker compose down && docker compose up -d
   ```
+## 秘密鍵の作り方
+  以下の方法で、生成される secretkey が秘密鍵  secretkey.pub が公開鍵です。
+  ```bash
+  ssh-keygen -t ed25519 -f secretkey
+  ```
+  秘密鍵の再生用パスフレーズを聞かれます。安全性確保のために、入力をお勧めします。
+  ```
+  Generating public/private ed25519 key pair.
+  Enter passphrase (empty for no passphrase):
+  ```
+  ログイン先のサーバ側に、公開鍵をコピーし、次の設定を行ってください。
 
+  ログインユーザ(rootではない)でログインして設定してください。
+
+  ```bash
+  mkdir -p ~/.ssh
+  chmod 700 ~/.ssh
+  cat secretkey.pub >> ~/.ssh/authorized_keys
+  chmod 600 ~/.ssh/authorized_keys
+  ```
